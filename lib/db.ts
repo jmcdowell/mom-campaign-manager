@@ -1,0 +1,84 @@
+import Database from 'better-sqlite3';
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+const dataDir = join(process.cwd(), 'data');
+mkdirSync(dataDir, { recursive: true });
+
+const db = new Database(join(dataDir, 'app.db'));
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  );
+  
+  CREATE TABLE IF NOT EXISTS investigator (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    strength INTEGER NOT NULL,
+    agility INTEGER NOT NULL,
+    observation INTEGER NOT NULL,
+    lore INTEGER NOT NULL,
+    influence INTEGER NOT NULL,
+    will INTEGER NOT NULL,
+    expansion TEXT NOT NULL
+  );
+`);
+
+export type Note = {
+  id: number;
+  title: string;
+  body: string;
+  createdAt: string;
+};
+
+export type Investigator = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  description: string;
+  strength: number;
+  agility: number;
+  observation: number;
+  lore: number;
+  influence: number;
+  will: number;
+  expansion: string;
+};
+
+export function getNotes(): Note[] {
+  return db.prepare('SELECT * FROM notes ORDER BY id DESC').all() as Note[];
+}
+
+export function addNote(note: { title: string; body: string }): Note[] {
+  db.prepare('INSERT INTO notes (title, body, createdAt) VALUES (?, ?, ?)')
+    .run(note.title, note.body, new Date().toISOString());
+  return getNotes();
+}
+
+export function getInvestigators(): Investigator[] {
+  return db.prepare('SELECT * FROM investigator ORDER BY id').all() as Investigator[];
+}
+
+export function addInvestigator(investigator: Omit<Investigator, 'id'>): Investigator[] {
+  db.prepare(
+    'INSERT INTO investigator (first_name, last_name, description, strength, agility, observation, lore, influence, will, expansion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(
+    investigator.first_name,
+    investigator.last_name,
+    investigator.description,
+    investigator.strength,
+    investigator.agility,
+    investigator.observation,
+    investigator.lore,
+    investigator.influence,
+    investigator.will,
+    investigator.expansion
+  );
+  return getInvestigators();
+}
