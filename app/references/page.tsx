@@ -31,6 +31,7 @@ export default function References() {
                   <th>INF</th>
                   <th>WIL</th>
                   <th>Expansion</th>
+                  <th>Product</th>
                 </tr>
               </thead>
               <tbody>
@@ -45,6 +46,7 @@ export default function References() {
                     <td>{investigator.influence}</td>
                     <td>{investigator.will}</td>
                     <td>{investigator.expansion}</td>
+                    <td>{investigator.product}</td>
                   </tr>
                 ))}
               </tbody>

@@ -15,8 +15,21 @@ db.exec(`
     createdAt TEXT NOT NULL
   );
   
+  CREATE TABLE "product_type" (
+    "id"	INTEGER,
+    "name"	TEXT,
+    PRIMARY KEY("id")
+  );
+
+  CREATE TABLE "product" (
+    "id"	INTEGER,
+    "name"	TEXT NOT NULL,
+    "product_type_id"	INTEGER NOT NULL,
+    PRIMARY KEY("id")
+  );
+
   CREATE TABLE IF NOT EXISTS investigator (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -26,7 +39,14 @@ db.exec(`
     lore INTEGER NOT NULL,
     influence INTEGER NOT NULL,
     will INTEGER NOT NULL,
-    expansion TEXT NOT NULL
+	  product_id INTEGER NOT NULL
+  );
+
+  CREATE TABLE "scenario" (
+    "id"	INTEGER,
+    "name"	TEXT NOT NULL,
+    "product_id"	INTEGER NOT NULL,
+    PRIMARY KEY("id")
   );
 `);
 
@@ -36,6 +56,48 @@ export type Note = {
   body: string;
   createdAt: string;
 };
+
+export type ProductType = {
+  id: number;
+  name: string;
+};
+
+export function getProductTypes(): ProductType[] {
+  return db.prepare('SELECT * FROM product_type ORDER BY id').all() as ProductType[];
+}
+
+export function addProductType(productType: ProductType): ProductType[] {
+  db.prepare(
+    'INSERT INTO product_type (id, name) VALUES (?, ?)'
+  ).run(
+    productType.id,
+    productType.name
+  );
+
+  return getProductTypes();
+}
+
+export type Product = {
+  id: number;
+  name: string;
+  product_type_id: number;
+};
+
+export function getProducts(): Product[] {
+  return db.prepare('SELECT * FROM product ORDER BY id').all() as Product[];
+}
+
+export function addProduct(product: Product): Product[] {
+  db.prepare(
+    'INSERT INTO product (id, name, product_type_id) VALUES (?, ?, ?)'
+  ).run(
+    product.id,
+    product.name,
+    product.product_type_id
+  );
+
+  return getProducts();
+}
 
 export type Investigator = {
   id: number;
@@ -48,7 +110,7 @@ export type Investigator = {
   lore: number;
   influence: number;
   will: number;
-  expansion: string;
+  product_id: number;
 };
 
 export function getNotes(): Note[] {
@@ -67,7 +129,7 @@ export function getInvestigators(): Investigator[] {
 
 export function addInvestigator(investigator: Omit<Investigator, 'id'>): Investigator[] {
   db.prepare(
-    'INSERT INTO investigator (first_name, last_name, description, strength, agility, observation, lore, influence, will, expansion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    'INSERT INTO investigator (first_name, last_name, description, strength, agility, observation, lore, influence, will, product_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
   ).run(
     investigator.first_name,
     investigator.last_name,
@@ -78,7 +140,14 @@ export function addInvestigator(investigator: Omit<Investigator, 'id'>): Investi
     investigator.lore,
     investigator.influence,
     investigator.will,
-    investigator.expansion
+    investigator.product_id,
   );
+
   return getInvestigators();
 }
+
+export type Scenario = {
+  id: number;
+  name: string;
+  product_id: number;
+};
